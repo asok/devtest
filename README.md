@@ -1,95 +1,29 @@
-# dev test
+# Setup
 
-Prepare a rails 4.2 application using Ruby 2.1 , which would have 2 isolated APIs, public and private.
+Run `rake db:setup`
 
-Private API responding to the following requests:
-  
-* 1 - GET  locations/:country_code
-* 2 - GET  target_groups/:country_code
-* 3 - POST evaluate_target
+Start the server: `bundle exec rails s`
 
-Public API responding to the following requests
-
-* 4 - GET  locations/:country_code
-* 5 - GET  target_groups/:country_code
-
-The authentication type is up to you and you should assume there is no firewall so the server would be public facing and needs to be secured properly when necessary.
-
-## models
-
-Country is linked with LocationGroup via one to many relationship and with TargetGroup via many to many but only with the root nodes:
-
-- id, country_code, panel_provider_id
-
-PanelProvider
-
-- id, code
-
-Location is linked with LocationGroup via many to many relationship:
-
-- id, name, external_id, secret_code
-
-LocationGroup:
-
-- id, name, country_id, panel_provider_id
-
-TargetGroup model would have associations with it self via parent_id which would form a tree with multiple root nodes:
-
-- id, name, external_id, parent_id, secret_code, panel_provider_id
+# Usage
 
 
-The application should have:
-- 3 Countries, each with different panel provider
-- 3 Panel Providers
-- 20 Locations of any type (city, region, state, etc.)
-- 4 Location Groups, 3 of them with different provider and 1 would belong to any of them  
-- 4 root Target Groups and each root should start a tree which is minimium 3 levels deep (3 of them with different provider and 1 would belong to any of them) 
+You can use curl:
 
-## request info
+```
+curl http://localhost:3000/v1/publi/locations/PL
+```
 
-#### Request #1
+For the private section you have to grab the key first:
 
-It should return locations which belong to the selected country based on it's current panel provider
+```
+curl http://localhost:3000/v1/private/locations/PL -H "Authorization: Token token=\"`bundle exec rails runner 'print ApiKey.last.token'`\""
+```
 
-#### Request #2
+For example to evaluate the target:
+```
+echo '{"country_code":"PL","locations":[{"id":1,"panel_size":200}],"target_group_id":1}' | curl http://localhost:3000/v1/private/evaluate_target -X POST -H "Authorization: Token token=\"`bundle exec rails runner 'print ApiKey.last.token'`\"" -H "Content-Type:application/json" -d @-
+```
 
-It should return target groups which belong to the selected country based on it's current panel provider
+# Testing
 
-#### Request #3
-
-It should require all of the following params to be provided and valid:
-
-- :country_code
-- :target_group_id
-- :locations  (an array of hashes which look like this { id: 123, panel_size: 200 })
-
-and return a price based on a logic specific to each panel provider used by a country.
-
-#### Request #4
-
-Same as #1 but for public consumption 
-
-#### Request #5
-
-Same as #2 but for public consumption
-
-## panel providers pricing logic
-
-Each panel provider will have a different pricing logic
- 
-#### Panel 1
-
-The price should be based on how many letters "a" can you find on this site http://time.com divided by 100
-    
-#### Panel 2
-
-The price should be based on the number of "b" opening tags you can find in this feed https://ajax.googleapis.com/ajax/services/feed/find?v=1.0&q=news 
-
-The tags will be encoded like this \u003cb\u003e if you view it as a raw JSON.
- 
-#### Panel 3
-
-The price should be based on how many html nodes can you find on this site http://time.com divided by 100
-
-
-
+Do: `bundle exec rspec`
