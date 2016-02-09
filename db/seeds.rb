@@ -35,13 +35,21 @@ LocationGroup.create!(name: 'France',
 end
 
 root1 = TargetGroup.create!(name: 'Polish from West Poland',
-                            panel_provider: provider1)
+                            panel_provider: provider1).tap do |group|
+  group.countries << pl
+end
 root2 = TargetGroup.create!(name: 'Polish from East Poland',
-                            panel_provider: provider1)
+                            panel_provider: provider1).tap do |group|
+  group.countries << pl
+end
 root3 = TargetGroup.create!(name: 'German',
-                            panel_provider: provider2)
+                            panel_provider: provider2).tap do |group|
+  group.countries << de
+end
 root4 = TargetGroup.create!(name: 'French',
-                            panel_provider: provider3)
+                            panel_provider: provider3).tap do |group|
+  group.countries << fr
+end
 
 [root1, root2, root3, root4].each do |root|
   3.times do |i|
